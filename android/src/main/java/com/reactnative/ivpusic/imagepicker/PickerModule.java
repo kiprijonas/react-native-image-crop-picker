@@ -168,6 +168,36 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     }
 
     @ReactMethod
+    public void cleanTempPhotos(final Promise promise) {
+
+        final Activity activity = getCurrentActivity();
+        final PickerModule module = this;
+
+        if (activity == null) {
+            promise.reject(E_ACTIVITY_DOES_NOT_EXIST, "Activity doesn't exist");
+            return;
+        }
+
+        permissionsCheck(activity, promise, Arrays.asList(Manifest.permission.WRITE_EXTERNAL_STORAGE), new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                try {
+                    File file = new File(activity.getApplicationContext().getFilesDir() + File.separator + "photoTemp");
+                    if (!file.exists()) throw new Exception("File does not exist");
+
+                    module.deleteRecursive(file);
+                    promise.resolve(null);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    promise.reject(E_ERROR_WHILE_CLEANING_FILES, ex.getMessage());
+                }
+
+                return null;
+            }
+        });
+    }
+
+    @ReactMethod
     public void cleanSingle(final String pathToDelete, final Promise promise) {
         if (pathToDelete == null) {
             promise.reject(E_ERROR_WHILE_CLEANING_FILES, "Cannot cleanup empty path");
