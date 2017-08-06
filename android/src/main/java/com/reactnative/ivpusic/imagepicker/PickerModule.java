@@ -285,7 +285,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             int requestCode = CAMERA_PICKER_REQUEST;
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-            File imageFile = createImageFile();
+            File imageFile = createImageFile(activity);
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 mCameraCaptureURI = Uri.fromFile(imageFile);
@@ -691,11 +691,10 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 || activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
     }
 
-    private File createImageFile() throws IOException {
+    private File createImageFile(Activity activity) throws IOException {
 
         String imageFileName = "image-" + UUID.randomUUID().toString();
-        File path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
+        File path = new File(activity.getApplicationContext().getFilesDir() + File.separator + "photoTemp");
 
         if (!path.exists() && !path.isDirectory()) {
             path.mkdirs();
