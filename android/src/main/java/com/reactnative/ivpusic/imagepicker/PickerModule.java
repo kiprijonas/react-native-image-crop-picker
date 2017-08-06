@@ -667,7 +667,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
         File destination = new File(destinationPath, source.getName());
         copyToInternalStorage(source, destination);
-
+        source.delete();
+        
         return Uri.fromFile(destination);
     }
 
