@@ -37,8 +37,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -285,7 +287,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             int requestCode = CAMERA_PICKER_REQUEST;
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-            File imageFile = createImageFile(activity);
+            File imageFile = createImageFile();
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 mCameraCaptureURI = Uri.fromFile(imageFile);
@@ -645,11 +647,43 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             } else {
                 try {
                     resultCollector.setWaitCount(1);
-                    resultCollector.notifySuccess(getSelection(activity, uri, true));
+                    Uri newUri = moveToInternalStorage(uri);
+                    resultCollector.notifySuccess(getSelection(activity, newUri, true));
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
                 }
             }
+        }
+    }
+
+    private Uri moveToInternalStorage(Uri srcUri) throws IOException {
+        File source = new File("" + srcUri);
+        File destinationPath = new File(this.getApplicationContext().getFilesDir() + File.separator + "photoTemp");
+
+        if (!destinationPath.exists() && !destinationPath.isDirectory()) {
+            destinationPath.mkdirs();
+        }
+
+        File destination = new File(destinationPath, source.getName());
+        copyFile(source, destination);
+
+        return Uri.fromFile(destination);
+    }
+
+    private static void copyFile(File src, File dst) throws IOException
+    {
+        FileChannel inChannel = new FileInputStream(src).getChannel();
+        FileChannel outChannel = new FileOutputStream(dst).getChannel();
+        try
+        {
+            inChannel.transferTo(0, inChannel.size(), outChannel);
+        }
+        finally
+        {
+            if (inChannel != null)
+                inChannel.close();
+            if (outChannel != null)
+                outChannel.close();
         }
     }
 
@@ -691,10 +725,11 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 || activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
     }
 
-    private File createImageFile(Activity activity) throws IOException {
+    private File createImageFile() throws IOException {
 
         String imageFileName = "image-" + UUID.randomUUID().toString();
-        File path = new File(activity.getApplicationContext().getFilesDir().getPath());
+        File path = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
 
         if (!path.exists() && !path.isDirectory()) {
             path.mkdirs();
