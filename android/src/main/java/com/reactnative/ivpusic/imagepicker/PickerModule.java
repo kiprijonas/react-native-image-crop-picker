@@ -694,7 +694,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private File createImageFile(Activity activity) throws IOException {
 
         String imageFileName = "image-" + UUID.randomUUID().toString();
-        File path = new File(activity.getApplicationContext().getFilesDir() + File.separator + "photoTemp");
+        File path = new File(activity.getApplicationContext().getFilesDir().getPath());
 
         if (!path.exists() && !path.isDirectory()) {
             path.mkdirs();
