@@ -648,8 +648,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 try {
                     resultCollector.setWaitCount(1);
                     String path = resolveRealPath(activity, uri, true);
-                    Uri newUri = moveToInternalStorage(path, activity);
-                    resultCollector.notifySuccess(getSelectionFromInternalStorage(activity, newUri, true));
+                    String newPath= moveToInternalStorage(path, activity);
+                    resultCollector.notifySuccess(getSelectionFromInternalStorage(activity, newPath, true));
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
                 }
@@ -657,16 +657,15 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         }
     }
 
-    private WritableMap getSelectionFromInternalStorage(Activity activity, Uri uri, boolean isCamera) throws Exception {
-        String path = "" + uri;
-        if (path == null || path.isEmpty()) {
+    private WritableMap getSelectionFromInternalStorage(Activity activity, String newPath, boolean isCamera) throws Exception {
+        if (newPath == null || newPath.isEmpty()) {
             throw new Exception("Cannot resolve asset path.");
         }
 
-        return getImage(activity, path);
+        return getImage(activity, newPath);
     }
 
-    private Uri moveToInternalStorage(String srcPath, Activity activity) throws IOException {
+    private String moveToInternalStorage(String srcPath, Activity activity) throws IOException {
         File source = new File(srcPath);
         File destinationPath = new File(activity.getApplicationContext().getFilesDir() + File.separator + "photoTemp");
 
@@ -678,7 +677,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         copyToInternalStorage(source, destination);
         source.delete();
 
-        return Uri.fromFile(destination);
+        return destination.getAbsolutePath();
     }
 
     private static void copyToInternalStorage(File src, File dst) throws IOException
