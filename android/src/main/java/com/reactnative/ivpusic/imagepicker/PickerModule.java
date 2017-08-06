@@ -649,12 +649,21 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                     resultCollector.setWaitCount(1);
                     String path = resolveRealPath(activity, uri, true);
                     Uri newUri = moveToInternalStorage(path, activity);
-                    resultCollector.notifySuccess(getSelection(activity, newUri, true));
+                    resultCollector.notifySuccess(getSelectionFromInternalStorage(activity, newUri, true));
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
                 }
             }
         }
+    }
+
+    private WritableMap getSelectionFromInternalStorage(Activity activity, Uri uri, boolean isCamera) throws Exception {
+        String path = "" + uri;
+        if (path == null || path.isEmpty()) {
+            throw new Exception("Cannot resolve asset path.");
+        }
+
+        return getImage(activity, path);
     }
 
     private Uri moveToInternalStorage(String srcPath, Activity activity) throws IOException {
@@ -668,7 +677,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         File destination = new File(destinationPath, source.getName());
         copyToInternalStorage(source, destination);
         source.delete();
-        
+
         return Uri.fromFile(destination);
     }
 
