@@ -647,7 +647,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             } else {
                 try {
                     resultCollector.setWaitCount(1);
-                    Uri newUri = moveToInternalStorage(uri, activity);
+                    String path = resolveRealPath(activity, uri, true);
+                    Uri newUri = moveToInternalStorage(path, activity);
                     resultCollector.notifySuccess(getSelection(activity, newUri, true));
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
@@ -656,8 +657,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         }
     }
 
-    private Uri moveToInternalStorage(Uri srcUri, Activity activity) throws IOException {
-        File source = new File("" + srcUri);
+    private Uri moveToInternalStorage(String srcPath, Activity activity) throws IOException {
+        File source = new File(srcPath);
         File destinationPath = new File(activity.getApplicationContext().getFilesDir() + File.separator + "photoTemp");
 
         if (!destinationPath.exists() && !destinationPath.isDirectory()) {
@@ -665,12 +666,12 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         }
 
         File destination = new File(destinationPath, source.getName());
-        copyFile(source, destination);
+        copyToInternalStorage(source, destination);
 
         return Uri.fromFile(destination);
     }
 
-    private static void copyFile(File src, File dst) throws IOException
+    private static void copyToInternalStorage(File src, File dst) throws IOException
     {
         FileChannel inChannel = new FileInputStream(src).getChannel();
         FileChannel outChannel = new FileOutputStream(dst).getChannel();
