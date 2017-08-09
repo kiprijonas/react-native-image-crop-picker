@@ -183,9 +183,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             public Void call() throws Exception {
                 try {
                     File file = new File(activity.getApplicationContext().getFilesDir() + File.separator + "photoTemp");
-                    if (!file.exists()) return promise.resolve(null);
+                    if (file.exists()) module.deleteRecursive(file);
 
-                    module.deleteRecursive(file);
                     promise.resolve(null);
                 } catch (Exception ex) {
                     ex.printStackTrace();
